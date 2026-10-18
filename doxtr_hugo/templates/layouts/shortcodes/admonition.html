@@ -1,0 +1,13 @@
+{{- /*
+  admonition shortcode — matches the translator's emitted contract:
+    {{< admonition type >}}...{{< /admonition >}}
+    {{< admonition type "Custom title" >}}...{{< /admonition >}}
+  Positional param 0 = semantic type (note/warning/tip/...); param 1 = optional
+  display title. When no title is given, the type name (title-cased) is used.
+*/ -}}
+{{- $type := .Get 0 | default "note" -}}
+{{- $title := .Get 1 | default (title $type) -}}
+<div class="admonition {{ $type }}">
+  <p class="admonition-title">{{ $title }}</p>
+  {{ .Inner | markdownify }}
+</div>

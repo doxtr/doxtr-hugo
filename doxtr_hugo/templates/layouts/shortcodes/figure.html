@@ -1,0 +1,11 @@
+{{- /*
+  figure shortcode — a minimal, theme-independent stand-in for the Hugo
+  built-in `figure` so a zero-theme build renders figures emitted by the
+  translator. Named params: src (required), alt, caption, title, width.
+*/ -}}
+<figure>
+  <img src="{{ .Get "src" }}"
+       {{ with .Get "alt" }}alt="{{ . }}"{{ end }}
+       {{ with .Get "width" }}width="{{ . }}"{{ end }} />
+  {{ with .Get "caption" }}<figcaption>{{ . | markdownify }}</figcaption>{{ end }}
+</figure>

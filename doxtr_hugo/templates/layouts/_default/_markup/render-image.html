@@ -1,0 +1,37 @@
+{{- /*
+  render-image.html — Goldmark image render hook (theme-portable image fix).
+
+  doxtr-hugo emits each rendered asset (``math-<hash>.png``,
+  ``diagram-<hash>.svg``) and each co-located authored image as a *bundle-local*
+  Markdown reference: ``![alt](math-<hash>.png)``. Goldmark's default image
+  renderer copies that destination verbatim into ``<img src="math-<hash>.png">``.
+  That only resolves while the page is served at its own bundle URL. The moment a
+  theme renders a page's *full content* somewhere else — a blog-style home feed,
+  a section ``list`` page, a paginated archive — the browser resolves the bare
+  filename against *that* URL and the image 404s. (Archie's home feed, Risotto's
+  section lists, and similar themes all do this.)
+
+  This render hook makes bundle-relative image references resolve correctly no
+  matter where the page content is embedded: a bare filename is looked up as a
+  *page resource* of the page that authored it and rewritten to that resource's
+  absolute ``.RelPermalink``. External/absolute/root-anchored URLs are passed
+  through unchanged.
+
+  A site-level ``layouts/_markup/`` render hook takes precedence over a theme's
+  own hooks but does NOT shadow the theme's page templates, so shipping it is
+  safe in both the full skeleton and the content-only (theme drop-in) emit.
+*/ -}}
+{{- $dest := .Destination -}}
+{{- $resolved := $dest -}}
+{{- /* Only rewrite plain, bundle-local destinations (no scheme, not
+       root-anchored, not a protocol-relative or data URI). */ -}}
+{{- if and (not (urls.Parse $dest).Scheme) (not (strings.HasPrefix $dest "/")) (not (strings.HasPrefix $dest "//")) (not (strings.HasPrefix $dest "#")) -}}
+  {{- /* strip any query/anchor before matching the resource filename */ -}}
+  {{- $name := $dest -}}
+  {{- $name = index (split $name "?") 0 -}}
+  {{- $name = index (split $name "#") 0 -}}
+  {{- with .Page.Resources.GetMatch $name -}}
+    {{- $resolved = .RelPermalink -}}
+  {{- end -}}
+{{- end -}}
+<img src="{{ $resolved }}"{{ with .Title }} title="{{ . }}"{{ end }}{{ with .Text }} alt="{{ . }}"{{ end }} />

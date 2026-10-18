@@ -1,0 +1,21 @@
+[submodule "test_harness/themes/archie"]
+	path = test_harness/themes/archie
+	url = https://github.com/athul/archie
+[submodule "test_harness/themes/hugo-terminal"]
+	path = test_harness/themes/hugo-terminal
+	url = https://github.com/panr/hugo-theme-terminal
+[submodule "test_harness/themes/hyde"]
+	path = test_harness/themes/hyde
+	url = https://github.com/spf13/hyde
+[submodule "test_harness/themes/risotto"]
+	path = test_harness/themes/risotto
+	url = https://github.com/joeroe/risotto
+[submodule "test_harness/themes/notepadium"]
+	path = test_harness/themes/notepadium
+	url = https://github.com/cntrump/hugo-notepadium
+[submodule "test_harness/themes/hugo-book"]
+	path = test_harness/themes/hugo-book
+	url = https://github.com/alex-shpak/hugo-book
+[submodule "test_harness/themes/docsy"]
+	path = test_harness/themes/docsy
+	url = https://github.com/google/docsy

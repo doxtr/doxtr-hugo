@@ -1,0 +1,83 @@
+[build-system]
+requires = ["setuptools>=77.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "doxtr-hugo"
+dynamic = ["version"]
+authors = [{ name = "Jens Frey" }]
+description = "Sphinx builder that generates Hugo-ready Markdown and assets from a Sphinx project."
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+requires-python = ">=3.10"
+dependencies = [
+    "sphinx>=5.0",
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Framework :: Sphinx :: Extension",
+    "Operating System :: OS Independent",
+]
+
+[project.optional-dependencies]
+# Diagram backends are optional: the builder degrades gracefully when a backend
+# or its binary is unavailable (emits a warning, skips or passes through).
+diagrams = [
+    "sphinxcontrib-plantuml>=0.9",
+    "sphinxcontrib-mermaid>=0.9",
+    "doxtr-d2>=0.1",
+    "diagrams>=0.23",
+]
+# YAML front matter (doxtr_hugo_front_matter = "yaml") uses PyYAML when present;
+# a hand-rolled fallback emitter is used otherwise.
+yaml = [
+    "PyYAML>=6.0",
+]
+# Everything an end user might want: all diagram backends + YAML front matter.
+all = [
+    "doxtr-hugo[diagrams]",
+    "doxtr-hugo[yaml]",
+]
+dev = [
+    "pytest>=7.0",
+    "pytest-cov>=4.0",
+    "doxtr-hugo[all]",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/doxtr/doxtr-hugo"
+
+[tool.setuptools.packages.find]
+include = ["doxtr_hugo*"]
+
+[tool.setuptools.dynamic]
+version = { attr = "doxtr_hugo.__version__" }
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.package-data]
+doxtr_hugo = [
+    "py.typed",
+    "templates/layouts/_default/*.html",
+    "templates/layouts/_default/_markup/*.html",
+    "templates/layouts/shortcodes/*.html",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["test_harness", "tests"]
+python_files = ["test_*.py"]
+python_functions = ["test_*"]
+
+[tool.coverage.run]
+source = ["doxtr_hugo"]
+omit = ["*/test_*", "*/conf*.py"]
+
+[tool.coverage.report]
+show_missing = true
+fail_under = 75

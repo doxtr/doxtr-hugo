@@ -1,0 +1,80 @@
+name: Test Harness
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+# Pinned Hugo (standard edition). Hugo is the one backend missing from the
+# doxtr/reactor image; PlantUML, Graphviz, d2, Java, matplotlib and TeX Live
+# are already present (see implementation guide §7.3). Bump in one place.
+env:
+  HUGO_VERSION: "0.140.2"
+
+jobs:
+  test-harness:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Free disk space
+        uses: jlumbroso/free-disk-space@v1.3.1
+        with:
+          tool-cache: false
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: true
+          docker-images: false
+          swap-storage: true
+
+      - uses: actions/checkout@v4
+        with:
+          # Vendored matrix themes (guide §7.2a) are pinned git submodules
+          # under test_harness/themes/. Fetch them so the multi-theme matrix
+          # runs real builds instead of recording SKIPs. A theme that needs
+          # the Hugo extended binary (Docsy) SKIPs gracefully when only the
+          # standard edition is installed below.
+          submodules: recursive
+
+      - name: Pull container image
+        run: docker pull doxtr/reactor:0.1.8
+
+      - name: Run test harness (real Sphinx + Hugo build)
+        run: |
+          docker run --rm \
+            -e HUGO_VERSION="${HUGO_VERSION}" \
+            -v ${{ github.workspace }}:/workspaces/docs \
+            -w /workspaces/docs \
+            doxtr/reactor:0.1.8 \
+            bash -c '
+              set -e
+              pip install -e /workspaces/docs[dev] 2>/dev/null || pip install -e /workspaces/docs
+              # Install pinned Hugo (standard edition) — the one backend the
+              # reactor image lacks. PlantUML/Graphviz/math are already present.
+              curl -L -o /tmp/hugo.tar.gz \
+                "https://github.com/gohugoio/hugo/releases/download/v${HUGO_VERSION}/hugo_${HUGO_VERSION}_linux-amd64.tar.gz"
+              tar -xzf /tmp/hugo.tar.gz -C /usr/local/bin hugo
+              hugo version
+              cd test_harness
+              python test_runner.py
+            '
+
+      - name: Run unit tests
+        run: |
+          docker run --rm \
+            -v ${{ github.workspace }}:/workspaces/docs \
+            -w /workspaces/docs \
+            doxtr/reactor:0.1.8 \
+            bash -c '
+              pip install -e /workspaces/docs[dev] 2>/dev/null || pip install -e /workspaces/docs
+              python -m pytest tests/ -v --tb=short
+            '
+
+      - name: Upload build artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-harness-hugo
+          path: test_harness/public/
+          if-no-files-found: ignore
